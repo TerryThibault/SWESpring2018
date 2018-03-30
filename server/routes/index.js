@@ -48,6 +48,7 @@ router.post('/register',
 function(req, res){
   if(req.body.username.match("\w*@ufl.edu")){
     db.users.add(req.body.username, req.body.password);
+    res.send(200);
   }
   res.send(303);
 })
