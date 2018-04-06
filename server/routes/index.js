@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 var passport = require('passport');
 var Strategy = require('passport-local').Strategy;
-var db = require('../db');
+var db = require('../db/users.js');
 
 //Setup passport Strategy
 passport.use(new Strategy(
@@ -30,7 +30,6 @@ passport.use(new Strategy(
   });
 });
 
-
 router.use(passport.initialize());
 router.use(passport.session());
 
@@ -44,13 +43,38 @@ function(req, res){
   res.render('register');
 })
 
+router.post('/reset',
+function(req, res){
+  res.send("resetting password...");
+})
+
+router.post('/queue',
+function(req, res){
+  res.send("you are queued");
+})
+
+router.post('/dequeue',
+function(req,res){
+  res.send("you are dequeued");
+})
+
+router.get('/recents',
+function(req,res){
+  db.getRecentsFor(req.body.username, function(succ){
+    console.log("recents = ", succ);
+  })
+
+})
+
 router.post('/register',
 function(req, res){
-  if(req.body.username.match("\w*@ufl.edu")){
-    db.users.add(req.body.username, req.body.password);
+  if(req.body.username.match("\w+@ufl.edu")){
+    db.addUser(req.body.username, req.body.password);
     res.send(200);
   }
-  res.send(303);
+  else{
+    res.send(303);
+  }
 })
 
 router.post('/login',
