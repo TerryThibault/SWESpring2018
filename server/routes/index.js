@@ -33,35 +33,64 @@ passport.use(new Strategy(
 router.use(passport.initialize());
 router.use(passport.session());
 
-router.get('/login',
+
+fetch()
+
+
+
+router.post('/login',
 function(req, res){
-  res.render('login');
+  console.log("request body = ", req.body);
+  db.loginUser(req.body.username, req.body.password, (result, err) =>{
+    if (result){
+      res.send({'status': 200,
+                'recents': ["username1", "username2"]
+    });
+    }
+    else {
+      res.send({'status': 303});
+    }
+  });
 })
 
 router.get('/register',
 function(req, res){
-  res.render('register');
+  db.addUser(req.body.usernam, req.body.password, (result, err) =>{
+    if(result){
+      res.send({'status': 200});
+    }
+    else {
+      res.send({'status': 303});
+    }
+  })
 })
 
 router.post('/reset',
 function(req, res){
-  res.send("resetting password...");
+  res.send(200);
 })
 
 router.post('/queue',
 function(req, res){
-  res.send("you are queued");
+  db.queueUser(req.username, (user, err)=>{
+    if(user){
+      res.send({
+        'sessionID': user.sessionID
+      })
+    }
+  });
 })
 
 router.post('/dequeue',
 function(req,res){
+  db.de
   res.send("you are dequeued");
 })
 
 router.get('/recents',
 function(req,res){
-  db.getRecentsFor(req.body.username, function(succ){
-    console.log("recents = ", succ);
+  db.getRecentsFor(req.body.username, function(succ, err){
+    res.send(succ);
   })
 
 })
@@ -77,11 +106,10 @@ function(req, res){
   }
 })
 
-router.post('/login',
-  passport.authenticate('local', { failureRedirect: '/' }), //change this later
-  function(req, res) {
-    res.render('login')
-    console.log("req = ", req.body);
-  });
+// router.post('/login',
+//   passport.authenticate('local', { failureRedirect: '/' }), //change this later
+//   function(req, res) {
+//     console.log("req = ", req.body);
+//   });
 
 module.exports = router;

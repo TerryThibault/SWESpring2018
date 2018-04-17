@@ -5,6 +5,57 @@ const util = require('util');
 //   `password varchar(255),` +
 //   `online varchar(1) DEFAULT '0'`+
 // `);`);
+//`date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+createMatches = function(){
+  process.nextTick(function(){
+    db.query(`SELECT * from queue`, (err, result)=>{
+      if(err) throw err;
+      else{
+        if(result[0] && result[1]){
+          var username1 = result[0].username;
+          var username2 = result[1].username;
+          deleteFromQueue(username1, (value, err)=> {});
+          deleteFromQueue(username2, (value, err)=> {});
+          db.query(`INSERT INTO matches (username1, username2, ) VALUES ('${username1}', '${username2}')`, (err, res)=>{
+            if(error) throw err;
+          })
+        }
+      }
+    })
+  })
+}
+
+setInterval(function(){
+  createMatches();
+ }, 3000);
+
+matchFound = function(username, cb){
+  process.nextTick(function(){
+    db.query(`SELECT * FROM matches WHERE username1 = '${username}' OR username2 = '${username}' `, (err, result)=>{
+      if(err) throw err;
+      if(!result[0]) {
+        console.log("No match yet");
+        return cb(null, null, null);
+      }
+      if(result[0]){
+        console.log("Math found!");
+        return cb(result[0].username1, result[0].username2, null);
+      }
+    })
+  })
+}
+
+function deleteFromQueue(username, cb){
+  process.nextTick(function(){
+    db.query(`DELETE FROM queue WHERE username = '${username}'`, (err,result)=>{
+      if(err) throw err;
+      else {
+        return cb(username, null);
+      }
+    })
+  })
+}
+
 
 exports.findByUsername = function(username, cb) {
   process.nextTick(function() {
@@ -40,8 +91,37 @@ exports.loginUser = function(username, password, cb){
 
 exports.queueUser = function(username, cb) {
   process.nextTick(function() {
-    db.query(``)
+    //add check for user in system
+    db.query(`INSERT INTO queue (username) VALUES ('${username}')`, (err, result) =>{
+      if(err) throw err;
+      console.log("Inserted with", result.insertId);
+      setInterval(function(){
+        matchFound(username, (user1, user2, err) =>{
+          if(user1 || user2){
+            if(username != user1){
+              return cb(user1, null);
+            }
+            else{
+              return cb(user2, null);
+            }
+          }
+        })
+       }, 3000);
+    })
   })
+}
+
+exports.getRecents = function(username, cb){
+  process.nextTick(function() {
+    db.query(`SELECT * FROM matches WHERE username = '${username}'`, (result, err)=>{
+      if(err){
+        return cb(null, null);
+      }
+      else {
+        return cb(result, null)
+      }
+    }) 
+  }) 
 }
 
 exports.addUser = function(username, password, cb){
@@ -101,3 +181,5 @@ exports.addUser = function(username, password, cb){
 //   }
 //   return;
 // })
+
+//write test for queue
