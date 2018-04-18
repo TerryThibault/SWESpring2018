@@ -70,7 +70,7 @@ function(req, res){
   db.queueUser(req.body.username, (user, err)=>{
     if(user){
       res.send({
-        'sessionID': sessionID
+        'sessionID': user.sessionID
       })
     }
   });

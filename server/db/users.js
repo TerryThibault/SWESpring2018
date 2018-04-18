@@ -108,9 +108,7 @@ exports.queueUser = function(username, cb) {
       setInterval(function(){
         matchFound(username, (user1, user2, err) =>{
           if(user1 || user2){
-              
-              return cb({'sessionID': 5}, null);
-            
+              return cb({'sessionID': `${user1}${user2}`}, null);
           }
         })
        }, 3000);
