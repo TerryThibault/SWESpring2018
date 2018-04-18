@@ -1,6 +1,6 @@
 var db = require('./index.js').connection;
 const util = require('util');
-const bcrypt = require('bcrypt');
+const md5 = require('md5');
 // db.query(`CREATE TABLE test1.accounts(` +
 //   `username varchar(255),` +
 //   `password varchar(255),` +
@@ -13,13 +13,25 @@ createMatches = function(){
       if(err) throw err;
       else{
         if(result[0] != null && result[1] != null){
-          var username1 = result[0].username;
-          var username2 = result[1].username;
+          if(result[0].username < result[1].username){
+              var username1 = result[0].username;
+              var username2 = result[1].username;
+          }
+          else if(result[1].username < result[0].username){
+              var username1 = result[1].username;
+              var username2 = result[0].username;
+          }
           console.log("Match found! user1 = ", username1 , " and user2 = ", username2);
           deleteFromQueue(username1, (value, err)=> {});
           deleteFromQueue(username2, (value, err)=> {});
-          db.query(`INSERT INTO rrMatches (username1, username2) VALUES ('${username1}', '${username2}')`, (err, res)=>{
-            if(error) throw err;
+          var hash = md5(username1, username2);
+          console.log("hash = " , hash);
+          //need to add hash
+          db.query(`INSERT INTO rrMatches (username1, username2, matchhash) VALUES ('${username1}', '${username2}', '${hash}')`, (err, res)=>{
+            if(err){
+              console.log("we suck error");
+              throw err;
+            }
             console.log("server didn't crash");
           })
         }
@@ -36,36 +48,12 @@ matchFound = function(username, cb){
   process.nextTick(function(){
     db.query(`SELECT * FROM rrMatches WHERE username1 = '${username}' OR username2 = '${username}' `, (err, result)=>{
       if(err) throw err;
-      console.log("No match yet, here is result[0] = " , result[0]);
-        console.log("No match yet, here is result = " , result);
-        console.log("No match yet");
-      if(!result[0]) {
-        console.log("No match yet, here is result[0] = " , result[0]);
-        console.log("No match yet, here is result = " , result);
-        console.log("No match yet");
-        return cb(null, null);
-      }
       if(result[0]){
-        let username1 = null;
-        let username2 = null;
-
-        if(result[0].username1 < result[0].username2){
-            console.log("Match found! here is result[0].username1 ", result[0].username1);
-            console.log("Match found! here is result[0].username2 ", result[0].username2);
-            username1 = result[0].username1;
-            username2 = result[0].username2;
-        }
-        else if(result[0].username2 < result[0].username1){
-            console.log("Match found! here is result[0].username1 ", result[0].username1);
-            console.log("Match found! here is result[0].username2 ", result[0].username2);
-            username1 = result[0].username2;
-            username2 = result[0].username1;
-        }
-        var sessionID = md5(username1 + username2);
-        db.query(`INSERT INTO rrMatches (username1, username2, matchHash) VALUES ('${username1}', '${username2}', '${sessionID}'`, (err, result) => {});
-        return cb(sessionID, null);
+        var sessionID = result[0].matchHash;
+        return cb(sessionID, null);  
       }
-    })
+      }
+    )
   })
 }
 
