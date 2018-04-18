@@ -1,5 +1,6 @@
 var db = require('./index.js').connection;
 const util = require('util');
+const bcrypt = require('bcrypt');
 // db.query(`CREATE TABLE test1.accounts(` +
 //   `username varchar(255),` +
 //   `password varchar(255),` +
@@ -11,13 +12,16 @@ createMatches = function(){
     db.query(`SELECT * from queue`, (err, result)=>{
       if(err) throw err;
       else{
-        if(result[0] && result[1]){
+        if(result[0] != null && result[1] != null){
+          
           var username1 = result[0].username;
           var username2 = result[1].username;
+          console.log("Match found! user1 = ", username1 , " and user2 = ", username2);
           deleteFromQueue(username1, (value, err)=> {});
           deleteFromQueue(username2, (value, err)=> {});
-          db.query(`INSERT INTO matches (username1, username2, ) VALUES ('${username1}', '${username2}')`, (err, res)=>{
+          db.query(`INSERT INTO realMatches (username1, username2) VALUES ('${username1}', '${username2}')`, (err, res)=>{
             if(error) throw err;
+            console.log("server didn't crash");
           })
         }
       }
@@ -31,9 +35,9 @@ setInterval(function(){
 
 matchFound = function(username, cb){
   process.nextTick(function(){
-    db.query(`SELECT * FROM matches WHERE username1 = '${username}' OR username2 = '${username}' `, (err, result)=>{
+    db.query(`SELECT * FROM realMatches WHERE username1 = '${username}' OR username2 = '${username}' `, (err, result)=>{
       if(err) throw err;
-      if(!result[0]) {
+      if(result[0] == null) {
         console.log("No match yet");
         return cb(null, null, null);
       }
@@ -99,10 +103,10 @@ exports.queueUser = function(username, cb) {
         matchFound(username, (user1, user2, err) =>{
           if(user1 || user2){
             if(username != user1){
-              return cb(user1, null);
+              return cb({'sessionID': 5}, null);
             }
             else{
-              return cb(user2, null);
+              return cb({'sessionID': 5}, null);
             }
           }
         })
@@ -113,7 +117,7 @@ exports.queueUser = function(username, cb) {
 
 exports.getRecents = function(username, cb){
   process.nextTick(function() {
-    db.query(`SELECT * FROM matches WHERE username = '${username}'`, (result, err)=>{
+    db.query(`SELECT * FROM realMatches WHERE username = '${username}'`, (result, err)=>{
       if(err){
         return cb(null, null);
       }

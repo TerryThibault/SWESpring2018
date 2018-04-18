@@ -33,11 +33,6 @@ passport.use(new Strategy(
 router.use(passport.initialize());
 router.use(passport.session());
 
-
-fetch()
-
-
-
 router.post('/login',
 function(req, res){
   console.log("request body = ", req.body);
@@ -53,9 +48,9 @@ function(req, res){
   });
 })
 
-router.get('/register',
+router.post('/register',
 function(req, res){
-  db.addUser(req.body.usernam, req.body.password, (result, err) =>{
+  db.addUser(req.body.username, req.body.password, (result, err) =>{
     if(result){
       res.send({'status': 200});
     }
@@ -75,7 +70,7 @@ function(req, res){
   db.queueUser(req.username, (user, err)=>{
     if(user){
       res.send({
-        'sessionID': user.sessionID
+        'sessionID': sessionID
       })
     }
   });
@@ -95,16 +90,7 @@ function(req,res){
 
 })
 
-router.post('/register',
-function(req, res){
-  if(req.body.username.match("\w+@ufl.edu")){
-    db.addUser(req.body.username, req.body.password);
-    res.send(200);
-  }
-  else{
-    res.send(303);
-  }
-})
+
 
 // router.post('/login',
 //   passport.authenticate('local', { failureRedirect: '/' }), //change this later
