@@ -46,10 +46,16 @@ matchFound = function(username, cb){
         return cb(null, null, null);
       }
       if(result[0]){
-
-        console.log("Match found! here is result[0].username1 ", result[0].username1);
-        console.log("Match found! here is result[0].username2 ", result[0].username2);
-        return cb(result[0].username1, result[0].username2, null);
+        if(result[0].username1 < result[0].username2){
+            console.log("Match found! here is result[0].username1 ", result[0].username1);
+            console.log("Match found! here is result[0].username2 ", result[0].username2);
+            return cb(result[0].username1, result[0].username2, null);
+        }
+        else if(result[0].username2 < result[0].username1){
+            console.log("Match found! here is result[0].username1 ", result[0].username1);
+            console.log("Match found! here is result[0].username2 ", result[0].username2);
+            return cb(result[0].username2, result[0].username1, null);
+        }
       }
     })
   })
