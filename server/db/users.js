@@ -18,7 +18,7 @@ createMatches = function(){
           console.log("Match found! user1 = ", username1 , " and user2 = ", username2);
           deleteFromQueue(username1, (value, err)=> {});
           deleteFromQueue(username2, (value, err)=> {});
-          db.query(`INSERT INTO realMatches (username1, username2) VALUES ('${username1}', '${username2}')`, (err, res)=>{
+          db.query(`INSERT INTO rrMatches (username1, username2) VALUES ('${username1}', '${username2}')`, (err, res)=>{
             if(error) throw err;
             console.log("server didn't crash");
           })
@@ -34,7 +34,7 @@ setInterval(function(){
 
 matchFound = function(username, cb){
   process.nextTick(function(){
-    db.query(`SELECT * FROM realMatches WHERE username1 = '${username}' OR username2 = '${username}' `, (err, result)=>{
+    db.query(`SELECT * FROM rrMatches WHERE username1 = '${username}' OR username2 = '${username}' `, (err, result)=>{
       if(err) throw err;
       console.log("No match yet, here is result[0] = " , result[0]);
         console.log("No match yet, here is result = " , result);
@@ -43,19 +43,27 @@ matchFound = function(username, cb){
         console.log("No match yet, here is result[0] = " , result[0]);
         console.log("No match yet, here is result = " , result);
         console.log("No match yet");
-        return cb(null, null, null);
+        return cb(null, null);
       }
       if(result[0]){
+        let username1 = null;
+        let username2 = null;
+
         if(result[0].username1 < result[0].username2){
             console.log("Match found! here is result[0].username1 ", result[0].username1);
             console.log("Match found! here is result[0].username2 ", result[0].username2);
-            return cb(result[0].username1, result[0].username2, null);
+            username1 = result[0].username1;
+            username2 = result[0].username2;
         }
         else if(result[0].username2 < result[0].username1){
             console.log("Match found! here is result[0].username1 ", result[0].username1);
             console.log("Match found! here is result[0].username2 ", result[0].username2);
-            return cb(result[0].username2, result[0].username1, null);
+            username1 = result[0].username2;
+            username2 = result[0].username1;
         }
+        var sessionID = md5(username1 + username2);
+        db.query(`INSERT INTO rrMatches (username1, username2, matchHash) VALUES ('${username1}', '${username2}', '${sessionID}'`, (err, result) => {});
+        return cb(sessionID, null);
       }
     })
   })
@@ -112,9 +120,9 @@ exports.queueUser = function(username, cb) {
       if(err) throw err;
       console.log("Inserted with", result.insertId);
       setInterval(function(){
-        matchFound(username, (user1, user2, err) =>{
-          if(user1 || user2){
-              return cb({'sessionID': `${user1}${user2}`}, null);
+        matchFound(username, (sessionID, err) =>{
+          if(sessionID){
+              return cb({'sessionID': `${sessionID}`}, null);
           }
         })
        }, 3000);
@@ -124,7 +132,7 @@ exports.queueUser = function(username, cb) {
 
 exports.getRecents = function(username, cb){
   process.nextTick(function() {
-    db.query(`SELECT * FROM realMatches WHERE username = '${username}'`, (result, err)=>{
+    db.query(`SELECT * FROM rrMatches WHERE username = '${username}'`, (result, err)=>{
       if(err){
         return cb(null, null);
       }
