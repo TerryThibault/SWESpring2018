@@ -13,7 +13,6 @@ createMatches = function(){
       if(err) throw err;
       else{
         if(result[0] != null && result[1] != null){
-          
           var username1 = result[0].username;
           var username2 = result[1].username;
           console.log("Match found! user1 = ", username1 , " and user2 = ", username2);
@@ -37,12 +36,19 @@ matchFound = function(username, cb){
   process.nextTick(function(){
     db.query(`SELECT * FROM realMatches WHERE username1 = '${username}' OR username2 = '${username}' `, (err, result)=>{
       if(err) throw err;
-      if(result[0] == null) {
+      console.log("No match yet, here is result[0] = " , result[0]);
+        console.log("No match yet, here is result = " , result);
+        console.log("No match yet");
+      if(!result[0]) {
+        console.log("No match yet, here is result[0] = " , result[0]);
+        console.log("No match yet, here is result = " , result);
         console.log("No match yet");
         return cb(null, null, null);
       }
       if(result[0]){
-        console.log("Math found!");
+
+        console.log("Match found! here is result[0].username1 ", result[0].username1);
+        console.log("Match found! here is result[0].username2 ", result[0].username2);
         return cb(result[0].username1, result[0].username2, null);
       }
     })
@@ -102,12 +108,9 @@ exports.queueUser = function(username, cb) {
       setInterval(function(){
         matchFound(username, (user1, user2, err) =>{
           if(user1 || user2){
-            if(username != user1){
+              
               return cb({'sessionID': 5}, null);
-            }
-            else{
-              return cb({'sessionID': 5}, null);
-            }
+            
           }
         })
        }, 3000);

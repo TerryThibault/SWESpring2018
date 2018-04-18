@@ -67,7 +67,7 @@ function(req, res){
 
 router.post('/queue',
 function(req, res){
-  db.queueUser(req.username, (user, err)=>{
+  db.queueUser(req.body.username, (user, err)=>{
     if(user){
       res.send({
         'sessionID': sessionID
