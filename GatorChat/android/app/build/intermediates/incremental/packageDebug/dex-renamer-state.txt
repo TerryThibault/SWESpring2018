@@ -1,4 +1,0 @@
-#Mon Mar 19 21:45:50 EDT 2018
-base.0=/home/t/Documents/Spring2018/Software Engineering/SWESpring2018/RCTWebRTCDemo/android/app/build/intermediates/transforms/dex/debug/folders/1000/1f/main
-renamed.0=classes.dex
-file.0=/home/t/Documents/Spring2018/Software Engineering/SWESpring2018/RCTWebRTCDemo/android/app/build/intermediates/transforms/dex/debug/folders/1000/1f/main/classes.dex
